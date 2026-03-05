@@ -109,8 +109,7 @@ def get_auth_provider() -> Optional[OAuthProxy]:
     token_verifier = MyJWTVerifier(
         jwks_uri=jwks_uri,
         issuer=realm_public,
-        required_scopes=required_scopes if required_scopes else None,
-        verify_aud=False
+        required_scopes=required_scopes if required_scopes else None
     )
     
     # Créer l'OAuth proxy

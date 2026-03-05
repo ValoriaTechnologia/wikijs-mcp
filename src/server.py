@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from fastmcp import FastMCP, Context
+from fastmcp.prompts import Message
 
 from src.graphql_client import GraphQLClient
 from src.auth import get_auth_provider
@@ -182,7 +183,7 @@ def get_pages_resource(ctx: Context) -> str:
 
 # Prompts avec FastMCP
 @mcp.prompt()
-def wiki_help_prompt() -> str:
+def wiki_help_prompt() -> Message:
     """Documentation générale de l'API WikiJS et exemples d'utilisation."""
     help_text = """# Documentation API WikiJS
 
@@ -245,7 +246,7 @@ get_page_by_path(path="/home", language="fr")
 1. Utiliser `search_wiki` ou `list_pages` pour trouver des pages
 2. Utiliser `read_page` ou `get_page_by_path` pour récupérer le contenu complet
 """
-    return help_text
+    return Message(help_text)
 
 
 def main():

@@ -4,7 +4,7 @@ Serveur MCP (Model Context Protocol) qui expose l'API GraphQL de WikiJS pour rec
 
 ## Architecture
 
-Le serveur MCP utilise FastMCP pour interagir avec WikiJS via son API GraphQL. Il expose 4 outils simples pour rechercher et lire des pages.
+Le serveur MCP utilise **FastMCP v3** pour interagir avec WikiJS via son API GraphQL. Il expose 4 outils simples pour rechercher et lire des pages.
 
 ## Fonctionnalités
 
@@ -42,6 +42,7 @@ cp env.example .env
 - `MCP_TRANSPORT` : Mode de transport (`stdio` pour local, `sse` pour réseau, défaut: `sse`)
 - `MCP_HOST` : Adresse d'écoute pour le mode réseau (défaut: `0.0.0.0`)
 - `MCP_PORT` : Port pour le mode réseau (défaut: `8000`)
+- `FASTMCP_SHOW_SERVER_BANNER` : Afficher la bannière au démarrage (optionnel, voir [FastMCP](https://gofastmcp.com))
 
 ## Configuration WikiJS
 
@@ -111,6 +112,8 @@ Avant d'utiliser le serveur MCP, vous devez configurer un client dans Keycloak :
 
 3. **Configurer les scopes** si nécessaire (par défaut: `openid profile email`)
 
+**Note (FastMCP v3)** : Le stockage OAuth par défaut utilise désormais FileTreeStore. Lors d'une mise à jour depuis FastMCP v2, les clients MCP devront se ré-enregistrer une fois à la première connexion (comportement automatique).
+
 **Activation :**
 
 1. Définissez les variables d'environnement dans votre fichier `.env` :
@@ -176,7 +179,7 @@ Ou avec Docker Compose (si vous avez un fichier `docker-compose.yml`) :
 docker-compose up
 ```
 
-Le serveur MCP utilise la bibliothèque **FastMCP** et supporte le transport HTTP avec SSE automatique.
+Le serveur MCP utilise la bibliothèque **FastMCP v3** et supporte le transport HTTP avec SSE automatique.
 
 ### Configuration dans Cursor/Claude Desktop
 
