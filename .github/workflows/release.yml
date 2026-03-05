@@ -1,0 +1,38 @@
+name: "Release Action"
+
+on:
+  workflow_call:
+    inputs:
+      tag_to_deploy:
+        required: true
+        type: string
+      changelog:
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch tag
+        run: git fetch origin tag ${{ inputs.tag_to_deploy }}
+
+      - name: Create source zip
+        run: git archive -o source.zip ${{ inputs.tag_to_deploy }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag_to_deploy }}
+          body: ${{ inputs.changelog }}
+          files: source.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
