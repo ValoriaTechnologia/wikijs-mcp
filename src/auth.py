@@ -106,6 +106,9 @@ def get_auth_provider() -> Optional[OAuthProxy]:
     # Le verifier récupère automatiquement les clés publiques JWKS depuis Keycloak
     # et vérifie la signature, l'expiration, l'issuer, l'audience et les scopes
     # L'issuer utilise l'URL INTERNE pour la vérification JWT
+    logger.info(f"JWKS URI: {jwks_uri}")
+    logger.info(f"Issuer: {realm_public}")
+    logger.info(f"Required scopes: {required_scopes}")
     token_verifier = MyJWTVerifier(
         jwks_uri=jwks_uri,
         issuer=realm_public,
