@@ -1,7 +1,11 @@
 """Configuration centralisée pour l'application utilisant Pydantic Settings."""
 
 from typing import Optional
+
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+MCP_TRANSPORT_VALUES: tuple[str, ...] = ("stdio", "http", "sse", "streamable-http")
 
 
 class Config(BaseSettings):
@@ -82,6 +86,12 @@ class Config(BaseSettings):
     
     # ========== Configuration MCP Server ==========
     
+    mcp_transport: str = "http"
+    """Transport MCP : stdio, http, sse, streamable-http.
+    Variable d'environnement : MCP_TRANSPORT.
+    Défaut: http
+    """
+    
     mcp_host: str = "0.0.0.0"
     """Adresse d'écoute pour le mode réseau.
     Défaut: 0.0.0.0
@@ -91,6 +101,15 @@ class Config(BaseSettings):
     """Port pour le mode réseau.
     Défaut: 8000
     """
+    
+    @field_validator("mcp_transport", mode="after")
+    @classmethod
+    def validate_mcp_transport(cls, v: str) -> str:
+        if v not in MCP_TRANSPORT_VALUES:
+            raise ValueError(
+                f"MCP_TRANSPORT doit être l'un de {MCP_TRANSPORT_VALUES}, reçu: {v!r}"
+            )
+        return v
     
     def get_keycloak_public_url(self) -> str:
         """Récupère l'URL publique Keycloak avec détection automatique.

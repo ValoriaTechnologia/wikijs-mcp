@@ -268,12 +268,16 @@ def main():
     # Récupérer la configuration
     config = get_config()
     
-    # Lancer le serveur avec le transport approprié
-    # FastMCP.run() est une fonction synchrone qui gère sa propre boucle d'événements
-    host = config.mcp_host
-    port = config.mcp_port
-    # Utiliser run avec transport HTTP (FastMCP utilise HTTP avec SSE fallback)
-    mcp.run(transport="http", host=host, port=port, path="/mcp")
+    # Lancer le serveur avec le transport configuré (MCP_TRANSPORT)
+    if config.mcp_transport == "stdio":
+        mcp.run(transport="stdio")
+    else:
+        mcp.run(
+            transport=config.mcp_transport,
+            host=config.mcp_host,
+            port=config.mcp_port,
+            path="/mcp",
+        )
 
 
 if __name__ == "__main__":

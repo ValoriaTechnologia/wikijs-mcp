@@ -39,7 +39,7 @@ cp env.example .env
 - `WIKIJS_URL` : URL de base de WikiJS (ex: `https://wiki.example.com`)
 - `WIKIJS_GRAPHQL_ENDPOINT` : Endpoint GraphQL (optionnel, défaut: `{WIKIJS_URL}/graphql`)
 - `WIKIJS_API_KEY` : Clé API WikiJS avec droits de lecture
-- `MCP_TRANSPORT` : Mode de transport (`stdio` pour local, `sse` pour réseau, défaut: `sse`)
+- `MCP_TRANSPORT` : Transport MCP (`stdio`, `http`, `sse`, `streamable-http` ; défaut : `http`). Mettez `sse` pour le transport Server-Sent Events.
 - `MCP_HOST` : Adresse d'écoute pour le mode réseau (défaut: `0.0.0.0`)
 - `MCP_PORT` : Port pour le mode réseau (défaut: `8000`)
 - `FASTMCP_SHOW_SERVER_BANNER` : Afficher la bannière au démarrage (optionnel, voir [FastMCP](https://gofastmcp.com))
@@ -179,13 +179,13 @@ Ou avec Docker Compose (si vous avez un fichier `docker-compose.yml`) :
 docker-compose up
 ```
 
-Le serveur MCP utilise la bibliothèque **FastMCP v3** et supporte le transport HTTP avec SSE automatique.
+Le serveur MCP utilise la bibliothèque **FastMCP v3**. Le transport est configurable via `MCP_TRANSPORT` (stdio, http, sse, streamable-http).
 
 ### Configuration dans Cursor/Claude Desktop
 
 #### Avec Python directement (mode stdio)
 
-Pour utiliser le serveur en mode stdio, modifiez `run_server.py` ou créez un script séparé qui utilise le transport stdio.
+Pour utiliser le serveur en mode stdio, définissez `MCP_TRANSPORT=stdio` dans l'environnement (voir exemples ci-dessous).
 
 **Configuration de base (sans authentification du serveur MCP) :**
 ```json
