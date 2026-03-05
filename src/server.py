@@ -14,6 +14,12 @@ from src.graphql_client import GraphQLClient
 from src.auth import get_auth_provider
 from src.config import get_config
 
+import logging
+from fastmcp.utilities.logging import get_logger
+
+to_client_logger = get_logger(name="fastmcp.server.auth.providers.jwt")
+to_client_logger.setLevel(level=logging.DEBUG)
+
 
 @dataclass
 class AppContext:
