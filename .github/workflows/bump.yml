@@ -32,6 +32,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           release_branches: main
           default_bump: false
-          commit_analyser_preset: conventionalcommits
+          commit_analyzer_preset: conventionalcommits
 
       
