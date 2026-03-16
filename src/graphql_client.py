@@ -236,3 +236,52 @@ class GraphQLClient:
         
         result = await self.execute_query(graphql_query, variables)
         return result.get('pages', {}).get('singleByPath', {})
+
+    async def list_wiki_pages(self) -> list[Dict[str, Any]]:
+        """
+        Liste déterministe des pages WikiJS avec chemin et titre uniquement.
+        
+        Returns:
+            Liste d'objets contenant au minimum path et title.
+        """
+        graphql_query = """
+        query ListWikiPages {
+          pages {
+            list {
+              path
+              title
+            }
+          }
+        }
+        """
+        
+        result = await self.execute_query(graphql_query)
+        return result.get("pages", {}).get("list", [])
+
+    async def read_wiki_page(self, path: str) -> Dict[str, Any]:
+        """
+        Récupère le contenu brut d'une page WikiJS par son chemin.
+        
+        Args:
+            path: Chemin de la page (ex: /home, /documentation/intro)
+        
+        Returns:
+            Données de la page contenant au minimum content (Markdown) et contentType.
+        """
+        graphql_query = """
+        query ReadWikiPage($path: String!) {
+          pages {
+            single(path: $path) {
+              content
+              contentType
+            }
+          }
+        }
+        """
+        
+        variables = {
+            "path": path,
+        }
+        
+        result = await self.execute_query(graphql_query, variables)
+        return result.get("pages", {}).get("single", {})

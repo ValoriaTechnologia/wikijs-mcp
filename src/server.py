@@ -68,189 +68,115 @@ _auth_provider = get_auth_provider()
 mcp = FastMCP("wikijs-mcp", lifespan=app_lifespan, auth=_auth_provider)
 
 
-# Tools MCP
 @mcp.tool()
-async def search_wiki(
+async def list_wiki_pages(
     ctx: Context,
-    query: str
 ) -> str:
     """
-    Recherche des pages dans WikiJS.
+    Liste déterministe de toutes les pages WikiJS.
     
-    Args:
-        query: Terme de recherche
-    
-    Returns:
-        Résultats de la recherche formatés en JSON
+    Utiliser ce tool pour obtenir la carte complète de l'arborescence
+    (liste de tous les chemins de pages disponibles avec leur titre).
     """
+    del ctx  # non utilisé pour le moment
     global _app_context
     if _app_context is None:
         return json.dumps({"error": "Contexte non initialisé"}, indent=2)
     
     try:
-        result = await _app_context.graphql_client.search_pages(query)
-        return json.dumps(result, indent=2, ensure_ascii=False)
+        pages = await _app_context.graphql_client.list_wiki_pages()
+        return json.dumps(pages, indent=2, ensure_ascii=False)
     except Exception as e:
-        return json.dumps({"error": f"Erreur lors de la recherche: {str(e)}"}, indent=2)
+        return json.dumps(
+            {"error": f"Erreur lors de la récupération de la liste des pages: {str(e)}"},
+            indent=2,
+            ensure_ascii=False,
+        )
 
 
 @mcp.tool()
-async def read_page(
-    ctx: Context,
-    page_id: int
-) -> str:
-    """
-    Récupère le contenu d'une page WikiJS par son ID.
-    
-    Args:
-        page_id: ID de la page à récupérer
-    
-    Returns:
-        Contenu de la page (Markdown brut et HTML rendu) formaté en JSON
-    """
-    global _app_context
-    if _app_context is None:
-        return json.dumps({"error": "Contexte non initialisé"}, indent=2)
-    
-    try:
-        result = await _app_context.graphql_client.get_page(page_id)
-        return json.dumps(result, indent=2, ensure_ascii=False)
-    except Exception as e:
-        return json.dumps({"error": f"Erreur lors de la récupération de la page: {str(e)}"}, indent=2)
-
-
-@mcp.tool()
-async def list_pages(
-    ctx: Context,
-    limit: int = 20
-) -> str:
-    """
-    Liste les pages disponibles dans WikiJS.
-    
-    Args:
-        limit: Nombre maximum de résultats (défaut: 20)
-    
-    Returns:
-        Liste des pages formatée en JSON
-    """
-    global _app_context
-    if _app_context is None:
-        return json.dumps({"error": "Contexte non initialisé"}, indent=2)
-    
-    try:
-        result = await _app_context.graphql_client.list_pages(limit)
-        return json.dumps(result, indent=2, ensure_ascii=False)
-    except Exception as e:
-        return json.dumps({"error": f"Erreur lors de la récupération de la liste: {str(e)}"}, indent=2)
-
-
-@mcp.tool()
-async def get_page_by_path(
+async def read_wiki_page(
     ctx: Context,
     path: str,
-    language: str = 'fr'
 ) -> str:
     """
-    Récupère une page WikiJS par son chemin.
+    Lit le contenu brut (Markdown) d'une page WikiJS par son chemin.
     
-    Args:
-        path: Chemin de la page (ex: /home, /documentation/intro)
-        language: Langue de la page (défaut: 'fr')
-    
-    Returns:
-        Contenu de la page (Markdown brut et HTML rendu) formaté en JSON
+    C'est l'outil prioritaire pour récupérer le contenu d'une ressource
+    connue sans faire de recherche floue.
     """
+    del ctx  # non utilisé pour le moment
     global _app_context
     if _app_context is None:
         return json.dumps({"error": "Contexte non initialisé"}, indent=2)
     
     try:
-        result = await _app_context.graphql_client.get_page_by_path(path, language)
-        return json.dumps(result, indent=2, ensure_ascii=False)
+        page = await _app_context.graphql_client.read_wiki_page(path)
+        return json.dumps(page, indent=2, ensure_ascii=False)
     except Exception as e:
-        return json.dumps({"error": f"Erreur lors de la récupération de la page: {str(e)}"}, indent=2)
+        return json.dumps(
+            {"error": f"Erreur lors de la lecture de la page '{path}': {str(e)}"},
+            indent=2,
+            ensure_ascii=False,
+        )
 
 
-# Resources avec FastMCP
-@mcp.resource("wikijs://pages")
-def get_pages_resource(ctx: Context) -> str:
-    """Liste toutes les pages disponibles dans WikiJS."""
-    global _app_context
-    if _app_context is None:
-        return json.dumps({"error": "Contexte non initialisé"}, indent=2)
-    
-    # Note: Cette resource est synchrone, donc on ne peut pas faire d'appel async
-    # On retourne juste une description
-    return json.dumps({
-        "description": "Liste des pages WikiJS",
-        "note": "Utilisez le tool list_pages pour récupérer la liste complète"
-    }, indent=2, ensure_ascii=False)
-
-
-# Prompts avec FastMCP
 @mcp.prompt()
 def wiki_help_prompt() -> Message:
-    """Documentation générale de l'API WikiJS et exemples d'utilisation."""
-    help_text = """# Documentation API WikiJS
+    """
+    Documentation des outils MCP disponibles pour interagir avec WikiJS.
+    
+    Note importante : aucune recherche textuelle floue n'est exposée.
+    L'interaction se fait exclusivement via des ressources déterministes.
+    """
+    help_text = """# Documentation API WikiJS (MCP)
 
-Le serveur MCP expose 4 outils pour interagir avec WikiJS via l'API GraphQL.
+Le serveur MCP expose **2 outils déterministes** pour interagir avec WikiJS
+via l'API GraphQL. Il n'expose **aucune recherche textuelle floue**.
 
 ## Outils disponibles
 
-### 1. search_wiki
-Recherche des pages dans WikiJS.
+### 1. list_wiki_pages
+Récupère la **carte complète** des pages du wiki.
 
-**Paramètres:**
-- `query` (string, requis): Terme de recherche
+**But :**
+- Donner à l'IA une vision déterministe de toutes les ressources existantes.
 
-**Exemple:**
+**Retour :**
+- Une liste d'objets avec au minimum :
+  - `path` : chemin unique de la page (ex: `/home`, `/docs/intro`)
+  - `title` : titre humainement lisible
+
+**Exemple d'appel :**
 ```python
-search_wiki(query="documentation")
+list_wiki_pages()
 ```
 
-### 2. read_page
-Récupère le contenu d'une page par son ID.
+### 2. read_wiki_page
+Lit le **contenu brut (Markdown)** d'une page spécifique.
 
-**Paramètres:**
-- `page_id` (int, requis): ID de la page
+**Paramètres :**
+- `path` (string, requis) : chemin exact de la page, tel que renvoyé par `list_wiki_pages`.
 
-**Exemple:**
+**But :**
+- Obtenir le contenu d'une ressource connue sans faire de recherche sur Internet.
+
+**Retour :**
+- Un objet contenant au minimum :
+  - `content` : contenu Markdown brut de la page
+  - `contentType` : type de contenu renvoyé par WikiJS
+
+**Exemple d'appel :**
 ```python
-read_page(page_id=1)
+read_wiki_page(path="/docs/intro")
 ```
 
-### 3. list_pages
-Liste les pages disponibles avec pagination.
+## Stratégie d'utilisation recommandée
 
-**Paramètres:**
-- `limit` (int, optionnel, défaut: 20): Nombre maximum de résultats
-
-**Exemple:**
-```python
-list_pages(limit=50)
-```
-
-### 4. get_page_by_path
-Récupère une page par son chemin.
-
-**Paramètres:**
-- `path` (string, requis): Chemin de la page (ex: /home, /documentation/intro)
-- `language` (string, optionnel, défaut: 'fr'): Langue de la page
-
-**Exemple:**
-```python
-get_page_by_path(path="/home", language="fr")
-```
-
-## Authentification
-
-- **Utilisateurs MCP** : OAuth Keycloak (si configuré)
-- **Appels WikiJS** : Clé API dans le header Authorization
-
-## Workflow typique
-
-1. Utiliser `search_wiki` ou `list_pages` pour trouver des pages
-2. Utiliser `read_page` ou `get_page_by_path` pour récupérer le contenu complet
+1. Utiliser `list_wiki_pages` pour découvrir toutes les ressources disponibles
+   et choisir précisément la page à lire.
+2. Utiliser `read_wiki_page(path)` comme **source de vérité prioritaire**
+   pour toute connaissance interne documentée dans le wiki.
 """
     return Message(help_text)
 
